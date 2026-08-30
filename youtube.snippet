@@ -1,3 +1,6 @@
-^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|guide|player|next) url script-response-body https://raw.githubusercontent.com/Wu2200/quan/main/youtube.response.js
+[rewrite_local]
+^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch) url script-request-body https://raw.githubusercontent.com/Wu2200/quan/main/youtube.request.js
+^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch) url script-response-body https://raw.githubusercontent.com/Wu2200/quan/main/youtube.response.js
 
+[mitm]
 hostname = youtubei.googleapis.com
