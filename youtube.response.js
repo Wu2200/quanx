@@ -184,6 +184,7 @@ function patchPlayerProto(bytes) {
                 if (!foundPip) {
                     playability.push({ fieldNumber: 5, wireType: 0, data: 1n });
                 }
+                playability.push({ fieldNumber: 21, wireType: 0, data: 1n });
                 field.data = serializeProto(playability);
             }
         }
