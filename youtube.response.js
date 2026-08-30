@@ -111,37 +111,38 @@ function stringToBytes(str) {
     return bytes;
 }
 
-const BLACKLIST_TARGETS = [
+const UPLOAD_TARGETS = [
     stringToBytes("FEuploads"),
+    stringToBytes("FEcreate"),
     stringToBytes("pivot_upload"),
-    stringToBytes("FEshorts"),
-    stringToBytes("pivot_shorts"),
-    stringToBytes("shorts_shelf"),
-    stringToBytes("reel_shelf")
+    stringToBytes("create_post"),
+    stringToBytes("openUploadEndpoint"),
+    stringToBytes("upload_video"),
+    stringToBytes("createSheetEndpoint")
 ];
 
-function containsTarget(bytes) {
-    for (let i = 0; i < BLACKLIST_TARGETS.length; i++) {
-        if (bytesIndexOf(bytes, BLACKLIST_TARGETS[i]) !== -1) {
+function containsUploadTarget(bytes) {
+    for (let i = 0; i < UPLOAD_TARGETS.length; i++) {
+        if (bytesIndexOf(bytes, UPLOAD_TARGETS[i]) !== -1) {
             return true;
         }
     }
     return false;
 }
 
-function filterProtoTree(bytes) {
+function filterUploadTree(bytes) {
     const fields = parseProto(bytes);
     if (!fields) return bytes;
     const result = [];
     for (let i = 0; i < fields.length; i++) {
         const field = fields[i];
         if (field.wireType === 2) {
-            if (containsTarget(field.data)) {
+            if (containsUploadTarget(field.data)) {
                 const sub = parseProto(field.data);
                 if (sub && field.data.length < 2048) {
                     continue;
                 }
-                field.data = filterProtoTree(field.data);
+                field.data = filterUploadTree(field.data);
             }
         }
         result.push(field);
@@ -163,12 +164,12 @@ function patchPlayerProto(bytes) {
                         playability[j].wireType = 0;
                         playability[j].data = 1n;
                         foundPip = true;
-                        break;
                     }
                 }
                 if (!foundPip) {
                     playability.push({ fieldNumber: 5, wireType: 0, data: 1n });
                 }
+                playability.push({ fieldNumber: 21, wireType: 0, data: 1n });
                 field.data = serializeProto(playability);
             }
         }
@@ -198,7 +199,7 @@ if (!rawData || rawData.length === 0) {
     if (url.indexOf("/youtubei/v1/player") !== -1) {
         modifiedData = patchPlayerProto(rawData);
     } else if (url.indexOf("/youtubei/v1/browse") !== -1 || url.indexOf("/youtubei/v1/guide") !== -1 || url.indexOf("/youtubei/v1/next") !== -1) {
-        modifiedData = filterProtoTree(rawData);
+        modifiedData = filterUploadTree(rawData);
     }
 
     if (typeof $response.bodyBytes !== "undefined") {
