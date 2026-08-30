@@ -165,6 +165,32 @@ function filterProto(bytes) {
     return serializeProto(result);
 }
 
+function patchPlayerProto(bytes) {
+    const fields = parseProto(bytes);
+    if (!fields) return bytes;
+    for (let i = 0; i < fields.length; i++) {
+        const field = fields[i];
+        if (field.fieldNumber === 2 && field.wireType === 2) {
+            const playability = parseProto(field.data);
+            if (playability) {
+                let foundPip = false;
+                for (let j = 0; j < playability.length; j++) {
+                    if (playability[j].fieldNumber === 5) {
+                        playability[j].wireType = 0;
+                        playability[j].data = 1n;
+                        foundPip = true;
+                    }
+                }
+                if (!foundPip) {
+                    playability.push({ fieldNumber: 5, wireType: 0, data: 1n });
+                }
+                field.data = serializeProto(playability);
+            }
+        }
+    }
+    return serializeProto(fields);
+}
+
 const url = $request.url;
 let rawData = null;
 
@@ -184,7 +210,9 @@ if (!rawData || rawData.length === 0) {
     $done({});
 } else {
     let modifiedData = rawData;
-    if (url.indexOf("/youtubei/v1/browse") !== -1 || url.indexOf("/youtubei/v1/guide") !== -1 || url.indexOf("/youtubei/v1/next") !== -1 || url.indexOf("/youtubei/v1/account/get_setting") !== -1) {
+    if (url.indexOf("/youtubei/v1/player") !== -1) {
+        modifiedData = patchPlayerProto(rawData);
+    } else if (url.indexOf("/youtubei/v1/browse") !== -1 || url.indexOf("/youtubei/v1/guide") !== -1 || url.indexOf("/youtubei/v1/next") !== -1 || url.indexOf("/youtubei/v1/account/get_setting") !== -1) {
         modifiedData = filterProto(rawData);
     }
 
