@@ -114,67 +114,55 @@ function stringToBytes(str) {
 const UPLOAD_TARGETS = [
     stringToBytes("FEuploads"),
     stringToBytes("FEcreate"),
-    stringToBytes("pivot_upload"),
+    stringToBytes("PIVOT_BAR_ITEM_IDENTIFIER_CREATE"),
     stringToBytes("create_post"),
     stringToBytes("openUploadEndpoint"),
     stringToBytes("upload_video"),
-    stringToBytes("createSheetEndpoint")
+    stringToBytes("createSheetEndpoint"),
+    stringToBytes("pivot_upload")
 ];
 
-function containsUploadTarget(bytes) {
-    for (let i = 0; i < UPLOAD_TARGETS.length; i++) {
-        if (bytesIndexOf(bytes, UPLOAD_TARGETS[i]) !== -1) {
+const KEEP_TARGETS = [
+    stringToBytes("FEwhat_to_watch"),
+    stringToBytes("FEshorts"),
+    stringToBytes("FEsubscriptions"),
+    stringToBytes("FEaccount"),
+    stringToBytes("FElibrary")
+];
+
+function containsAny(data, targets) {
+    for (let i = 0; i < targets.length; i++) {
+        if (bytesIndexOf(data, targets[i]) !== -1) {
             return true;
         }
     }
     return false;
 }
 
-function filterUploadTree(bytes) {
+function isUploadItem(bytes) {
+    if (bytes.length > 4096) return false;
+    if (!containsAny(bytes, UPLOAD_TARGETS)) return false;
+    if (containsAny(bytes, KEEP_TARGETS)) return false;
+    return true;
+}
+
+function filterProto(bytes) {
     const fields = parseProto(bytes);
     if (!fields) return bytes;
     const result = [];
     for (let i = 0; i < fields.length; i++) {
         const field = fields[i];
         if (field.wireType === 2) {
-            if (containsUploadTarget(field.data)) {
-                const sub = parseProto(field.data);
-                if (sub && field.data.length < 2048) {
-                    continue;
-                }
-                field.data = filterUploadTree(field.data);
+            if (isUploadItem(field.data)) {
+                continue;
+            }
+            if (containsAny(field.data, UPLOAD_TARGETS)) {
+                field.data = filterProto(field.data);
             }
         }
         result.push(field);
     }
     return serializeProto(result);
-}
-
-function patchPlayerProto(bytes) {
-    const fields = parseProto(bytes);
-    if (!fields) return bytes;
-    for (let i = 0; i < fields.length; i++) {
-        const field = fields[i];
-        if (field.fieldNumber === 2 && field.wireType === 2) {
-            const playability = parseProto(field.data);
-            if (playability) {
-                let foundPip = false;
-                for (let j = 0; j < playability.length; j++) {
-                    if (playability[j].fieldNumber === 5) {
-                        playability[j].wireType = 0;
-                        playability[j].data = 1n;
-                        foundPip = true;
-                    }
-                }
-                if (!foundPip) {
-                    playability.push({ fieldNumber: 5, wireType: 0, data: 1n });
-                }
-                playability.push({ fieldNumber: 21, wireType: 0, data: 1n });
-                field.data = serializeProto(playability);
-            }
-        }
-    }
-    return serializeProto(fields);
 }
 
 const url = $request.url;
@@ -196,10 +184,8 @@ if (!rawData || rawData.length === 0) {
     $done({});
 } else {
     let modifiedData = rawData;
-    if (url.indexOf("/youtubei/v1/player") !== -1) {
-        modifiedData = patchPlayerProto(rawData);
-    } else if (url.indexOf("/youtubei/v1/browse") !== -1 || url.indexOf("/youtubei/v1/guide") !== -1 || url.indexOf("/youtubei/v1/next") !== -1) {
-        modifiedData = filterUploadTree(rawData);
+    if (url.indexOf("/youtubei/v1/browse") !== -1 || url.indexOf("/youtubei/v1/guide") !== -1 || url.indexOf("/youtubei/v1/next") !== -1 || url.indexOf("/youtubei/v1/account/get_setting") !== -1) {
+        modifiedData = filterProto(rawData);
     }
 
     if (typeof $response.bodyBytes !== "undefined") {
