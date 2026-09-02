@@ -3,6 +3,6 @@ https?:\/\/[\w-]+\.googlevideo\.com\/(?!(dclk_video_ads|videoplayback\?)).+&oad 
 https?:\/\/(www|s)\.youtube\.com\/api\/stats\/ads url reject-200
 https?:\/\/(www|s)\.youtube\.com\/(pagead|ptracking) url reject-200
 https?:\/\/s\.youtube\.com\/api\/stats\/qoe\?adcontext url reject-200
-^https?:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|get_watch) url script-response-body https://raw.githubusercontent.com/用户名/仓库名/main/youtube.js
+^https?:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|get_watch) url script-response-body https://raw.githubusercontent.com/Wu2200/quanx/refs/heads/main/youtube.js
 
 hostname = youtubei.googleapis.com, *.googlevideo.com, *.youtube.com
