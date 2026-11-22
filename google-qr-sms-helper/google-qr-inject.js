@@ -10,13 +10,7 @@ for (const key of Object.keys(headers)) {
   }
 }
 
-if (!body || contentType.indexOf("text/html") === -1 || body.indexOf("__qx_qr_sms_helper_injected__") !== -1) {
-  $done({});
-} else {
-  const isAccounts = /^https:\/\/accounts\.google\.com\//i.test(url);
-  const isCloudConsole = /^https:\/\/console\.cloud\.google\.com\//i.test(url);
-
-  const uaSpoofScript = `<script data-qx="ua-spoof">(() => {
+function __qxUaSpoof() {
   const IPAD_MINI_UA = "Mozilla/5.0 (iPad; CPU OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1";
   const props = {
     userAgent: IPAD_MINI_UA,
@@ -31,9 +25,9 @@ if (!body || contentType.indexOf("text/html") === -1 || body.indexOf("__qx_qr_sm
       Object.defineProperty(navigator, k, { get: () => v, configurable: true });
     } catch (_) {}
   }
-})();</script>`;
+}
 
-  const uiScript = `<script id="__qx_qr_sms_helper_injected__">(() => {
+function __qxUiMain() {
   const isCloud = location.hostname === "console.cloud.google.com";
   const isQrPage = location.pathname.indexOf("/challenge/iap/qrcode") !== -1;
   if (!isCloud && !isQrPage) {
@@ -118,8 +112,10 @@ if (!body || contentType.indexOf("text/html") === -1 || body.indexOf("__qx_qr_sm
 
     function unescapeUrl(raw) {
       return raw
-        .replace(/\\\\u003d|\\u003d|\\x3d/gi, "=")
-        .replace(/\\\\u0026|\\u0026|\\x26/gi, "&")
+        .replace(/\\\\u003d|\\\\x3d/gi, "=")
+        .replace(/\\u003d|\\x3d/gi, "=")
+        .replace(/\\\\u0026|\\\\x26/gi, "&")
+        .replace(/\\u0026|\\x26/gi, "&")
         .replace(/\\\//g, "/")
         .replace(/&amp;/g, "&")
         .replace(/&quot;.*$/, "");
@@ -158,7 +154,7 @@ if (!body || contentType.indexOf("text/html") === -1 || body.indexOf("__qx_qr_sm
       }
 
       const html = document.documentElement.innerHTML || "";
-      const beginMatch = html.match(/https:\/\/accounts\.google\.com(?:\\\/|\/)devicephoneverification(?:\\\/|\/)begin\?[^"'\s<>]+/);
+      const beginMatch = html.match(/https:(?:\\\/|\/){2}accounts\.google\.com(?:\\\/|\/)devicephoneverification(?:\\\/|\/)begin\?[^"'\s<>]+/);
       if (beginMatch) {
         return unescapeUrl(beginMatch[0]);
       }
@@ -245,7 +241,16 @@ if (!body || contentType.indexOf("text/html") === -1 || body.indexOf("__qx_qr_sm
   } else {
     mount();
   }
-})();</script>`;
+}
+
+if (!body || contentType.indexOf("text/html") === -1 || body.indexOf("__qx_qr_sms_helper_injected__") !== -1) {
+  $done({});
+} else {
+  const isAccounts = /^https:\/\/accounts\.google\.com\//i.test(url);
+  const isCloudConsole = /^https:\/\/console\.cloud\.google\.com\//i.test(url);
+
+  const uaSpoofScript = `<script data-qx="ua-spoof">(${__qxUaSpoof.toString()})();</script>`;
+  const uiScript = `<script id="__qx_qr_sms_helper_injected__">(${__qxUiMain.toString()})();</script>`;
 
   if (isAccounts) {
     if (/<head[^>]*>/i.test(body)) {

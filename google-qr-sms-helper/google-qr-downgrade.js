@@ -46,7 +46,9 @@ function mergeCookies(cookieStr, respHeaders) {
 
 function unescapeBeginUrl(raw) {
   return raw
+    .replace(/\\\\u003d|\\\\x3d/gi, "=")
     .replace(/\\u003d|\\x3d/gi, "=")
+    .replace(/\\\\u0026|\\\\x26/gi, "&")
     .replace(/\\u0026|\\x26/gi, "&")
     .replace(/\\\//g, "/")
     .replace(/&amp;/g, "&")
