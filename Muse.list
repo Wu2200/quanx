@@ -1,0 +1,21 @@
+# NAME: Muse
+# DESCRIPTION: Meta Muse AI Agent 分流规则（适用于 Quantumult X）
+
+# Muse 核心域名
+HOST-SUFFIX,muse.ai,Muse
+HOST-SUFFIX,museagent.com,Muse
+HOST-SUFFIX,metaaivm.com,Muse
+HOST-SUFFIX,metaaiusercontent.com,Muse
+HOST-SUFFIX,ecto1usercontent.com,Muse
+
+# Meta AI / 认证与关联域名
+HOST-SUFFIX,meta.ai,Muse
+HOST-SUFFIX,meta.com,Muse
+HOST-SUFFIX,atmeta.com,Muse
+HOST-SUFFIX,llama.com,Muse
+HOST-SUFFIX,llamameta.net,Muse
+
+# Facebook 实时通信与资源 CDN（Muse 依赖接口）
+HOST,graph.facebook.com,Muse
+HOST-SUFFIX,meta-ai-realtime.facebook.com,Muse
+HOST-WILDCARD,scontent-*.xx.fbcdn.net,Muse
