@@ -1,0 +1,6 @@
+hostname = accounts.google.com, console.cloud.google.com
+
+^https:\/\/accounts\.google\.com\/__qx_qr_downgrade__ url script-analyze-echo-response https://raw.githubusercontent.com/Wu2200/quanx/main/google-qr-sms-helper/google-qr-downgrade.js
+^https:\/\/accounts\.google\.com\/ url script-request-header https://raw.githubusercontent.com/Wu2200/quanx/main/google-qr-sms-helper/google-qr-req-header.js
+^https:\/\/(accounts|console\.cloud)\.google\.com\/ url script-response-header https://raw.githubusercontent.com/Wu2200/quanx/main/google-qr-sms-helper/google-qr-resp-header.js
+^https:\/\/(accounts|console\.cloud)\.google\.com\/ url script-response-body https://raw.githubusercontent.com/Wu2200/quanx/main/google-qr-sms-helper/google-qr-inject.js
